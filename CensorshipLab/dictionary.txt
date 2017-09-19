@@ -1,0 +1,8 @@
+6
+lion
+pig
+cat
+dog
+elephant
+
+

@@ -1,0 +1,137 @@
+//Elizabeth Andrews
+//Last updated: Tue Apr 14 10:34 am
+
+import java.awt.event.*;
+
+public class Controller implements ActionListener {
+	private Model model;
+
+	public Controller(Model model) {
+		this.model = model;
+	}
+
+	public boolean isLegalMove(int row, int col, boolean player) {
+		if(isOnBoard(row, col)) {
+			if(isLegalMoveInDirection(row, col, -1, 0, player)) { //north
+				return true;
+			} else if(isLegalMoveInDirection(row, col, -1, 1, player)) { //northeast
+				return true;
+			} else if(isLegalMoveInDirection(row, col, -1, -1, player)) { //northwest
+				return true;
+			} else if(isLegalMoveInDirection(row, col, 0, 1, player)) { //east
+				return true;
+			} else if(isLegalMoveInDirection(row, col, 0, -1, player)) { //west
+				return true;
+			} else if(isLegalMoveInDirection(row, col, 1, 0, player)) { //south
+				return true;
+			} else if(isLegalMoveInDirection(row, col, 1, 1, player)) { //southeast
+				return true;
+			} else if(isLegalMoveInDirection(row, col, 1, -1, player)) { //southwest
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isLegalMoveInDirection(int row, int col, int dRow, int dCol, boolean player) {
+		if(isOnBoard(row + dRow, col + dCol)) {
+			if(model.isOccupied(row + dRow, col + dCol)) {
+				if(model.isOccupiedBy(row + dRow, col + dCol, !player)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isOnBoard(int row, int col) {
+		if(row < 0 || row > model.getSize() - 1 || col < 0 || col > model.getSize() -1) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent ae) {
+		
+		DButton buttonPressed = (DButton)ae.getSource();
+		if (isLegalMove(buttonPressed.getRow(), buttonPressed.getCol(), model.getTurn())) {
+			System.out.println(buttonPressed.getRow());
+			System.out.println(buttonPressed.getCol());
+			flip(buttonPressed.getRow(), buttonPressed.getCol(), model.getTurn());
+			model.takeTurn();
+		} else {
+			if(hasOtherPossibleMoves(buttonPressed.getRow(), buttonPressed.getCol(), model.getTurn()) == false) {
+				System.out.println("no other possible moves for " + model.getTurn());
+				model.takeTurn();
+			}
+		}
+		
+	}
+
+	public void flip(int row, int col, boolean player) {
+		//call flipInDirection 8 times I think?
+		flipInDirection(row, col, -1, 0, player); //north
+		flipInDirection(row, col, -1, 1, player); //northeast
+		flipInDirection(row, col, -1, -1, player); //northwest
+		flipInDirection(row, col, 0, 1, player); //east
+		flipInDirection(row, col, 0, -1, player); //west
+		flipInDirection(row, col, 1, 0, player); //south
+		flipInDirection(row, col, 1, 1, player); //southeast
+		flipInDirection(row, col, 1, -1, player); //southwest
+		
+	}
+	
+	public void flipInDirection(int row, int col, int dRow, int dCol, boolean player) {
+		//I think this is where the code that decides how many to flip goes
+		int endRow = row;
+		int endCol = col;
+		
+		if(isOnBoard(row + dRow, col + dCol) //if next piece is occupied
+				&& model.isOccupied(row + dRow, col + dCol) //and is occupied by opponent
+				&& model.isOccupiedBy(row + dRow, col + dCol, !player)) { //and is on board
+			while(model.isOccupied(endRow + dRow, endCol + dCol)
+					&& model.isOccupiedBy(endRow + dRow, endCol + dCol, !player)
+					&& isOnBoard(endRow + dRow, endCol + dCol)) {
+				endRow = endRow + dRow;
+				endCol = endCol + dCol;
+			}
+			
+			if(isOnBoard(endRow, endCol)
+					&& model.isOccupied(endRow, endCol)
+					&& model.isOccupiedBy(endRow, endCol, player)) {
+				while(endRow != row 
+						&& endCol != col) {
+					model.occupy(endRow, endCol, player);
+					endRow = endRow - dRow;
+					endCol = endCol - dCol;
+				}//end while loop to go backwards
+			}//end if statement
+			
+		}//end if statement inside flipInDirection method
+
+	}//end flipInDirection
+	
+	public boolean hasOtherPossibleMoves(int row, int col, boolean player) {
+		for(int i = 0; i < model.getSize(); i++) {
+			for(int j = 0; j < model.getSize(); j++) {
+				if(isLegalMove(row, col, player == true)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+
+}
